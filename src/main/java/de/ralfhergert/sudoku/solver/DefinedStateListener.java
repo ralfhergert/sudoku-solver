@@ -5,5 +5,5 @@ package de.ralfhergert.sudoku.solver;
  */
 public interface DefinedStateListener<Type> {
 
-    void stateChanged(Field<Type> field);
+	void stateChanged(Field<Type> field);
 }
