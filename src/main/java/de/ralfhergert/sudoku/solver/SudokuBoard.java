@@ -11,8 +11,8 @@ public class SudokuBoard<Symbol> {
 	private final int baseColumnCount;
 	private final int baseRowCount;
 	private final Collection<Symbol> symbols;
-	private final Map<FieldIndex,Field<Symbol>> fields = new HashMap<FieldIndex, Field<Symbol>>();
-	private final List<GroupConstraint<Symbol>> constraints = new ArrayList<GroupConstraint<Symbol>>();
+	private final Map<FieldIndex,Field<Symbol>> fields = new HashMap<>();
+	private final List<GroupConstraint<Symbol>> constraints = new ArrayList<>();
 
 	/**
 	 * Creates a SuDoKu board with a size of 9x9 fields.
@@ -44,7 +44,7 @@ public class SudokuBoard<Symbol> {
 		// create all fields.
 		for (int row = 0; row < baseRowCount*baseRowCount; row++) {
 			for (int col = 0; col < baseColumnCount*baseColumnCount; col++) {
-				Field<Symbol> field = new Field<Symbol>();
+				Field<Symbol> field = new Field<>();
 				for (Symbol symbol : symbols) {
 					field.addPossibility(symbol);
 				}
@@ -54,7 +54,7 @@ public class SudokuBoard<Symbol> {
 
 		// create all row constraints.
 		for (int row = 0; row < baseRowCount*baseRowCount; row++) {
-			GroupConstraint<Symbol> constraint = new GroupConstraint<Symbol>("Constraint for row " + row, symbols);
+			GroupConstraint<Symbol> constraint = new GroupConstraint<>("Constraint for row " + row, symbols);
 			for (int col = 0; col < baseColumnCount*baseColumnCount; col++) {
 				constraint.add(fields.get(new FieldIndex(row, col)));
 			}
@@ -63,7 +63,7 @@ public class SudokuBoard<Symbol> {
 
 		// create all column constraints.
 		for (int col = 0; col < baseColumnCount*baseColumnCount; col++) {
-			GroupConstraint<Symbol> constraint = new GroupConstraint<Symbol>("Constraint for column " + col, symbols);
+			GroupConstraint<Symbol> constraint = new GroupConstraint<>("Constraint for column " + col, symbols);
 			for (int row = 0; row < baseRowCount*baseRowCount; row++) {
 				constraint.add(fields.get(new FieldIndex(row, col)));
 			}
@@ -73,7 +73,7 @@ public class SudokuBoard<Symbol> {
 		// create all array group constraints.
 		for (int rowGroup = 0; rowGroup < baseRowCount; rowGroup += 1) {
 			for (int colGroup = 0; colGroup < baseColumnCount; colGroup += 1) {
-				GroupConstraint<Symbol> constraint = new ArrayGroupConstraints<Symbol>("Array constraint for " + rowGroup + "," + colGroup, symbols);
+				GroupConstraint<Symbol> constraint = new ArrayGroupConstraints<>("Array constraint for " + rowGroup + "," + colGroup, symbols);
 				for (int row = 0; row < baseRowCount; row++) {
 					for (int col = 0; col < baseColumnCount; col++) {
 						constraint.add(fields.get(new FieldIndex(rowGroup * 3 + row, colGroup * 3 + col)));

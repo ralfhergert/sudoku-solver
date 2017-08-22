@@ -8,11 +8,11 @@ import java.util.*;
 public class Field<Type> {
 
 	/** All values which are possible at the current game state. */
-    private Set<Type> possibleValues = new HashSet<Type>();
+	private Set<Type> possibleValues = new HashSet<>();
 	/** All group constraints this filed is enmeshed in. */
-    private List<GroupConstraint<Type>> groups = new ArrayList<GroupConstraint<Type>>();
+	private List<GroupConstraint<Type>> groups = new ArrayList<>();
 	/** All listeners which should be informed about a definition event. */
-	private List<DefinedStateListener<Type>> listeners = new ArrayList<DefinedStateListener<Type>>();
+	private List<DefinedStateListener<Type>> listeners = new ArrayList<>();
 
     public Field(Type... objects) {
 		Collections.addAll(possibleValues, objects);

@@ -12,7 +12,7 @@ public class GroupConstraint<Symbol> implements DefinedStateListener<Symbol> {
 
 	private final String name;
 	protected final Collection<Symbol> symbols;
-    protected List<Field<Symbol>> fields = new ArrayList<Field<Symbol>>();
+	protected List<Field<Symbol>> fields = new ArrayList<>();
 
 	public GroupConstraint(String name, Collection<Symbol> symbols) {
 		this.name = name;
