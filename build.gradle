@@ -7,8 +7,12 @@ sourceCompatibility = 1.5
 version = '1.0.0'
 mainClassName = 'de.ralfhergert.sudoku.solver.Solver'
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
-	testCompile group: 'junit', name: 'junit', version: '4.+'
+	testCompile 'junit:junit:4.11'
 }
 
 jar {
