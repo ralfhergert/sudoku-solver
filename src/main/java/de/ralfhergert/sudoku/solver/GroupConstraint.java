@@ -1,14 +1,12 @@
 package de.ralfhergert.sudoku.solver;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * A group constraint stretches over multiple fields and ensures that every
  * field in the group has a different value assigned.
  */
-public class GroupConstraint<Symbol> implements DefinedStateListener<Symbol> {
+public class GroupConstraint<Symbol> implements FieldValueChangedListener<Symbol> {
 
 	private final String name;
 	protected final Collection<Symbol> symbols;
@@ -20,55 +18,64 @@ public class GroupConstraint<Symbol> implements DefinedStateListener<Symbol> {
 	}
 
 	public void add(Field<Symbol> field) {
-        fields.add(field);
-        field.addListener(this);
-        field.addGroup(this);
-    }
+		fields.add(field);
+		field.addListener(this);
+		field.addGroup(this);
+	}
 
-    public void update() {
-        for (Symbol symbol : symbols) {
-            List<Field<Symbol>> potentialFields = new ArrayList<Field<Symbol>>();
-            for (Field<Symbol> field : fields) {
-                if (field.isPossible(symbol)) {
-                    if (field.isDefined()) {
-                        break; // skip this field because it already defines this i
-                    }
-                    potentialFields.add(field);
-                }
-            }
+	public boolean isValid() {
+		Collection<Symbol> symbols = new ArrayList<>(this.symbols);
+		// check for defined fields first. No symbol should be assigned twice.
+		for (Field<Symbol> field : fields) {
+			if (field.isDefined()) {
+				if (symbols.contains(field.getDefined())) {
+					symbols.remove(field.getDefined());
+				} else {
+					return false; // this symbol is already assigned by another field
+				}
+			}
+		}
+		// now check for the undefined fields
+		for (Field<Symbol> field : fields) {
+			if (!field.isDefined()) {
+				Set<Symbol> possibilities = field.getPossibilities();
+				possibilities.removeAll(symbols);
+				if (!possibilities.isEmpty()) {
+					return false; // this field assumed a value as possibility which was already assigned.
+				}
+			}
+		}
+		return true;
+	}
 
-            if (potentialFields.size() == 1) {
-                potentialFields.get(0).setValue(symbol);
-            }
-        }
-    }
-
-    public void stateChanged(Field<Symbol> field) {
-		// ensure that no other field in this constraint group has this value.
-		if (field.isDefined()) { // check first that the firing field is defined now.
-			final Symbol definedSymbol = field.getDefined();
+	/**
+	 * This method is called when a field in this group changes its value.
+	 */
+	public void valueChanged(Field<Symbol> field) {
+		// update all other fields in this group.
+		if (field.hasValue()) {
+			final Symbol definedSymbol = field.getValue();
 			for (Field<Symbol> otherField : fields) {
 				if (otherField != field) {
 					otherField.removePossibility(definedSymbol);
 				}
 			}
 		}
+	}
 
-        //update();
-    }
+	public List<Field<Symbol>> getFields() {
+		return fields;
+	}
 
-    public boolean containsAll(Collection<Field<Symbol>> fields) {
-        for (Field<Symbol> field : fields) {
-            if (!this.fields.contains(field)) {
-                 return false;
-            }
-        }
-        return true;
-    }
-
-    public List<Field<Symbol>> getFields() {
-        return fields;
-    }
+	public List<Field<Symbol>> getFieldsWithPossibility(Symbol symbol) {
+		final List<Field<Symbol>> foundFields = new ArrayList<>();
+		for (Field<Symbol> field : fields) {
+			if (field.isPossible(symbol)) {
+				foundFields.add(field);
+			}
+		}
+		return foundFields;
+	}
 
 	@Override
 	public String toString() {

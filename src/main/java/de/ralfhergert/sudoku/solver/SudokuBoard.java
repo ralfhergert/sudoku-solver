@@ -11,15 +11,15 @@ public class SudokuBoard<Symbol> {
 	private final int baseColumnCount;
 	private final int baseRowCount;
 	private final Collection<Symbol> symbols;
-	private final Map<FieldIndex,Field<Symbol>> fields = new HashMap<>();
+	private final Map<Position,Field<Symbol>> fields = new HashMap<>();
 	private final List<GroupConstraint<Symbol>> constraints = new ArrayList<>();
 
 	/**
 	 * Creates a SuDoKu board with a size of 9x9 fields.
 	 * Allowed symbols are integers [1,9].
 	 */
-	public SudokuBoard() {
-		this(3, 3, (Collection<Symbol>)Arrays.asList(1,2,3,4,5,6,7,8,9));
+	public static SudokuBoard<Integer> create9by9SudokuBoard() {
+		return new SudokuBoard<>(3, 3, Arrays.asList(1,2,3,4,5,6,7,8,9));
 	}
 
 	/**
@@ -44,11 +44,11 @@ public class SudokuBoard<Symbol> {
 		// create all fields.
 		for (int row = 0; row < baseRowCount*baseRowCount; row++) {
 			for (int col = 0; col < baseColumnCount*baseColumnCount; col++) {
-				Field<Symbol> field = new Field<>();
+				Field<Symbol> field = new Field<>(new Position(row, col), symbols);
 				for (Symbol symbol : symbols) {
 					field.addPossibility(symbol);
 				}
-				fields.put(new FieldIndex(row, col), field);
+				fields.put(field.getPosition(), field);
 			}
 		}
 
@@ -56,7 +56,7 @@ public class SudokuBoard<Symbol> {
 		for (int row = 0; row < baseRowCount*baseRowCount; row++) {
 			GroupConstraint<Symbol> constraint = new GroupConstraint<>("Constraint for row " + row, symbols);
 			for (int col = 0; col < baseColumnCount*baseColumnCount; col++) {
-				constraint.add(fields.get(new FieldIndex(row, col)));
+				constraint.add(fields.get(new Position(row, col)));
 			}
 			constraints.add(constraint);
 		}
@@ -65,7 +65,7 @@ public class SudokuBoard<Symbol> {
 		for (int col = 0; col < baseColumnCount*baseColumnCount; col++) {
 			GroupConstraint<Symbol> constraint = new GroupConstraint<>("Constraint for column " + col, symbols);
 			for (int row = 0; row < baseRowCount*baseRowCount; row++) {
-				constraint.add(fields.get(new FieldIndex(row, col)));
+				constraint.add(fields.get(new Position(row, col)));
 			}
 			constraints.add(constraint);
 		}
@@ -76,7 +76,7 @@ public class SudokuBoard<Symbol> {
 				GroupConstraint<Symbol> constraint = new ArrayGroupConstraints<>("Array constraint for " + rowGroup + "," + colGroup, symbols);
 				for (int row = 0; row < baseRowCount; row++) {
 					for (int col = 0; col < baseColumnCount; col++) {
-						constraint.add(fields.get(new FieldIndex(rowGroup * 3 + row, colGroup * 3 + col)));
+						constraint.add(fields.get(new Position(rowGroup * 3 + row, colGroup * 3 + col)));
 					}
 				}
 				constraints.add(constraint);
@@ -85,56 +85,53 @@ public class SudokuBoard<Symbol> {
 	}
 
 	public void setFieldValue(int row, int col, Symbol value) {
-		fields.get(new FieldIndex(row, col)).setValue(value);
+		fields.get(new Position(row, col)).setValue(value);
+	}
+
+	public Collection<Field<Symbol>> getFields() {
+		return fields.values();
+	}
+
+	public List<GroupConstraint<Symbol>> getConstraints() {
+		return constraints;
+	}
+
+	public Collection<Symbol> getSymbols() {
+		return symbols;
 	}
 
 	public void printToStream(PrintStream stream) {
 		for (int row = 0; row < baseRowCount*baseRowCount; row++) {
 			for (int col = 0; col < baseColumnCount*baseColumnCount; col++) {
-				Field<Symbol> field = fields.get(new FieldIndex(row, col));
-				stream.print(" " + (field.isDefined() ? field.getDefined() : "."));
+				Field<Symbol> field = fields.get(new Position(row, col));
+				stream.print(" " + (field.hasValue() ? field.getValue() : "."));
 			}
 			stream.println();
 		}
 	}
 
-	/** This is a helper class to find the field for a particular row and column. */
-	private static class FieldIndex {
-
-		private final int row;
-		private final int column;
-
-		private FieldIndex(int row, int column) {
-			this.row = row;
-			this.column = column;
+	/**
+	 * Check whether the board is valid. Which means no constraint on the board is violated.
+	 */
+	public boolean isValid() {
+		for (GroupConstraint<Symbol> constraint : constraints) {
+			if (!constraint.isValid()) {
+				return false;
+			}
 		}
+		return true; // if this point is reached then no constraint was violated.
+	}
 
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (!(o instanceof FieldIndex)) return false;
-
-			FieldIndex that = (FieldIndex) o;
-
-			if (column != that.column) return false;
-			if (row != that.row) return false;
-
-			return true;
+	/**
+	 * A board is solved when all fields are defined.
+	 * @return returns true when this board is solved.
+	 */
+	public boolean isSolved() {
+		for (Field<Symbol> field : fields.values()) {
+			if (!field.hasValue()) {
+				return false; // one field found which is not defined.
+			}
 		}
-
-		@Override
-		public int hashCode() {
-			int result = row;
-			result = 31 * result + column;
-			return result;
-		}
-
-		@Override
-		public String toString() {
-			return "FieldIndex{" +
-					"row=" + row +
-					",col=" + column +
-					'}';
-		}
+		return true; // all fields are defined.
 	}
 }

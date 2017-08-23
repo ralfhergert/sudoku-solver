@@ -3,7 +3,7 @@ package de.ralfhergert.sudoku.solver;
 /**
  * This listener catches state event from fields.
  */
-public interface DefinedStateListener<Type> {
+public interface FieldValueChangedListener<Type> {
 
-	void stateChanged(Field<Type> field);
+	void valueChanged(Field<Type> field);
 }
